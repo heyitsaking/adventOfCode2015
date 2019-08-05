@@ -28,31 +28,6 @@ fs.readFile('input.txt', (err, data) => {
         }
     })
 
-    console.log(i + ": " + value + " => ")
-    houses[indexX][indexY]++
-    if(value === "v") {
-        if(isNaN(houses[indexX][++indexY])) {
-            houses[indexX][indexY]= 0;
-        }
-        houses[indexX][indexY]++
-    } else if (value === ">") {
-        if(isNaN(houses[++indexX][indexY])) {
-            houses[indexX][indexY]= 0;
-        }
-        houses[indexX][indexY]++
-    } else if (value === "^") {
-        if(isNaN(houses[indexX][--indexY])) {
-            houses[indexX][indexY]= 0;
-        }
-        houses[indexX][indexY]++
-    } else {
-        if(isNaN(houses[--indexX][indexY])) {
-            houses[indexX][indexY]= 0;
-        }
-        houses[indexX][indexY]++
-    }
-    console.log(houses)
-
     // setTimeout(() => {
     //     console.log(houses)
     // }, 500);
