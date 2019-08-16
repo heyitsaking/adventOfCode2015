@@ -1,9 +1,13 @@
 const fs = require('fs')
 
-let input = fs.readFileSync('./input.txt').toString().split('\n')
+let input = fs.readFileSync(__dirname + '/input.txt').toString().split('\n')
 
 const location_regex = /(AlphaCentauri)|([A-Z])([a-z])*/g
 const distance_regex = /([0-9])+/g
+
+// I liked the idea of making it a class for simplicity, got it from
+// https://medium.com/@adriennetjohnson/a-walkthrough-of-dijkstras-algorithm-in-javascript-e94b74192026
+// However, their execution did not apply to the problem at hand
 
 class Graph {
     constructor() {
@@ -12,71 +16,84 @@ class Graph {
     }
     
     addNode(name) {
-        let node = {name: name, visited: false};
-        this.nodes.push(node);
-        this.adjacencyList[node.name] = [];
+        this.nodes.push(name);
+        this.adjacencyList[name] = [];
     }
     
     addEgde(node1, node2, weight) {
         this.adjacencyList[node1].push({node:node2, weight: weight});
         this.adjacencyList[node2].push({node:node1, weight: weight});
     }
-
-    shortestPath(startNode) {
-        let times = {}
-
-        times[startNode] = 0;
-        this.nodes.forEach(node => {
-            if(node.name !== startNode) times[node.name] = Infinity;
-        })
-    }
 }
 
 let map = new Graph();
 
-function recursiveShortestPath(currentNode, visitedNodes) {
-    let temp = JSON.parse(JSON.stringify(visitedNodes));
-    let times = [];
+// Just to have a base to copy
+let queue = [];
+
+function recursiveShortestPath(currentNode, adjacent, visitedNodes) {
+    let previous = JSON.parse(JSON.stringify(visitedNodes))
+
+    // Add to list to keep track of where I have visited
+    previous.push(currentNode);
+
+    // Holds the possible values after each iteration
+    let distances = [];
     let allVisited = true;
 
-    let log = [];
+    // Checks which nodes have been visited
+    adjacent.forEach(adjacentNode => {
+        let newDistance = 0;
+        let nextNode = '';
 
-    console.log(currentNode)
-
-    temp.forEach(node => {
-        if(currentNode.name == node.name) {
-            node.visited = true;
-            log.push(node.name)
-        }
-    })
-
-    temp.forEach(node => {
-
-        if (!node.visited) {
-            console.log("Nodes before:")
-            console.log(temp)
+        // If node has not been visited, apply function to new node
+        if (!previous.includes(adjacentNode.node)) {
             allVisited = false;
-            map.adjacencyList[currentNode.name].forEach(adjacent => {
-                if (adjacent.node == node.name) {
-                    log.push(node.name)
-                    times.push(recursiveShortestPath(node, temp) +  +adjacent.weight)
-                    node.visited = true;
-                    console.log("Nodes after:")
-                    console.log(temp)
-                }
-            })
+            newDistance = (recursiveShortestPath(adjacentNode.node, map.adjacencyList[adjacentNode.node], previous)) + +adjacentNode.weight;
+            distances.push(newDistance)
         }
     })
 
+    // Base case, a.k.a all nodes visited 
     if (allVisited) {
-        // console.log(log)
-        console.log('base case')
         return 0;
-    };
+    }
 
-    // console.log(log)
-    console.log(times)
-    return Math.min.apply(Math, times);
+    // Return minimum from all posibilities
+    return Math.min.apply(Math, distances);
+}
+
+
+function recursiveLongestPath(currentNode, adjacent, visitedNodes) {
+    let previous = JSON.parse(JSON.stringify(visitedNodes))
+
+    // Add to list to keep track of where I have visited
+    previous.push(currentNode);
+
+    // Holds the possible values after each iteration
+    let distances = [];
+    let allVisited = true;
+
+    // Checks which nodes have been visited
+    adjacent.forEach(adjacentNode => {
+        let newDistance = 0;
+        let nextNode = '';
+
+        // If node has not been visited, apply function to new node
+        if (!previous.includes(adjacentNode.node)) {
+            allVisited = false;
+            newDistance = (recursiveLongestPath(adjacentNode.node, map.adjacencyList[adjacentNode.node], previous)) + +adjacentNode.weight;
+            distances.push(newDistance)
+        }
+    })
+
+    // Base case, a.k.a all nodes visited 
+    if (allVisited) {
+        return 0;
+    }
+
+    // Return maximum from all posibilities
+    return Math.max.apply(Math, distances);
 }
 
 input.forEach(line => {
@@ -92,10 +109,10 @@ input.forEach(line => {
         let exists_2 = false;
 
         map.nodes.forEach(node => {
-            if (node.name == temp[0]) {
+            if (node == temp[0]) {
                 exists_1 = true;
             }
-            if (node.name == temp[1]) {
+            if (node == temp[1]) {
                 exists_2 = true;
             }
         })
@@ -107,12 +124,16 @@ input.forEach(line => {
     map.addEgde(temp[0], temp[1], dist[0])    
 })
 
-console.log(map.nodes[0].name + ": " + recursiveShortestPath(map.nodes[0], map.nodes))
+console.log("Minimum paths: ")
+map.nodes.forEach(node =>
+    {
+        console.log(node + ": " + recursiveShortestPath(node, map.adjacencyList[node], queue))
+    }
+)
 
-// map.nodes.forEach(node =>
-//     {
-//         console.log(node.name + ": " + recursiveShortestPath(node, map.nodes))
-//     }
-// )
-
-// console.log(map.dijkstraWithEndpoints('Faerun', 'Arbre'))
+console.log("\nMaximum paths: ")
+map.nodes.forEach(node =>
+    {
+        console.log(node + ": " + recursiveLongestPath(node, map.adjacencyList[node], queue))
+    }
+)
