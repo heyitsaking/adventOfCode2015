@@ -60,7 +60,7 @@ function nextChar(c) {
 }
 
 function looper(array, index) {
-    // console.log(array)
+
     array[index] = nextChar(array[index]);
     if (array[index] == 'a') {
         looper(array, index - 1)
